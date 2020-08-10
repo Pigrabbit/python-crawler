@@ -1,5 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
+import re
 
 USER_AGENT="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.105 Safari/537.36"
 HEADER = {'User-Agent': USER_AGENT}
@@ -20,12 +21,26 @@ def crawl_single_page(idx):
     page_uri = URI + str(idx)
     bs_obj = get_page_bs_obj(page_uri)
     product_list = get_product_list(bs_obj)
-    prodcut_items = get_product_items(product_list)
-    print(len(prodcut_items))
+    product_items = get_product_items(product_list)
 
-    return []
+    num_item = len(product_items)
 
-idx = list(range(1, 11))
+    ## TODO
+    # Extract name, category, price
+    # from each item and save it to dictionary(or other data structure)
+    result_item_list = []
+
+    for _, item in enumerate(product_items):
+        name = item.find('div', attrs={"class": "name"}).get_text().strip()
+        price = item.find('strong', attrs={"class": "price-value"}).get_text().strip()
+        img_src = item.find('img').get("src")
+        replaced_src = re.sub(r'^\/\/', '', img_src)
+        
+        result_item_list.append({ "name": name, "price": price, "img_src": replaced_src})
+
+    return result_item_list
+
+idx = list(range(1, 2))
 
 for i in idx:
     crawl_single_page(i)
